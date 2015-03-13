@@ -23,7 +23,7 @@ import javax.swing.ImageIcon;
  * @author YOUR NAME AND CST NUMBER GO HERE
  */
 
-abstract public class Ship
+abstract public class Ship implements DisplayableCell
 {
     protected int col;
     private int row;

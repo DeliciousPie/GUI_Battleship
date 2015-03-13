@@ -9,7 +9,12 @@
 
 package battleship.gui.javafx;
 
+
+
+
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,15 +23,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 /**
@@ -35,7 +38,17 @@ import javafx.stage.Stage;
  */
 public class Board extends Application
 {
+    private static final int NUM_SHIPS = 5;
+    private static final int NUM_ROW = 10;
+    private static final int NUM_COL = 10;
+    private int row;
+    private int col;
+    private GridPane gridPane;
+    private DisplayableCell[][] displayableCellGrid = new DisplayableCell[NUM_ROW][NUM_COL];//ship objects get set here
+    private Ship[] fleet = new Ship[NUM_SHIPS];
+    private int userGuess = 0;
     private Stage st;//holds stage object for using with action events
+    private Button[][] buttonGrid = new Button[NUM_ROW][NUM_COL];//holds buttons
     
     /* (non-Javadoc)
      * @see javafx.application.Application#start(javafx.stage.Stage)
@@ -57,14 +70,22 @@ public class Board extends Application
         //set a VBox with some updating messages
         board.setRight(createSideMessage());
         
+        startGame();
         //set a gridPane holding 10 by 10 grid of buttons
-        board.setCenter(createGridPane());
+        board.setCenter(gridPane);
         
         //puts pane into scene & adds that to the stage
         stage.setScene(new Scene(board));
+        stage.setWidth(700);
+        stage.setHeight(550);
+        stage.setResizable(false);
         stage.show();//show the stage
         stage.setTitle("CST Battleship");//creates title for stage
         st = stage;//sets global variable for manipulation
+        
+        
+        
+        
     }
     
     /**
@@ -86,7 +107,8 @@ public class Board extends Application
         Button close = new Button("Close");//to close game
         //sets button to close stage
         close.setOnAction((ActionEvent)->{
-            st.close();
+            //st.close();
+            System.exit(0);
         });
         
         HBox row = new HBox();//creates an HBox to add buttons 
@@ -107,37 +129,31 @@ public class Board extends Application
         time.setFont(new Font("Courier", 18));
         time.setAlignment(Pos.CENTER);
         
-        Rectangle r1 = new Rectangle(150, 20);//rect to show text on
-        r1.setStyle("-fx-Stroke: Black");//creates a border 
-        r1.setFill(Color.WHITE);
-        Text txt1 = new Text("0.0");//text for placement on rect
-        StackPane stack1 = new StackPane();//adds text on top rect
-        stack1.getChildren().addAll(r1, txt1);
+        TextField t1 = new TextField();//txt field to show time elapsed
+        t1.setText("0.0");
+        t1.setAlignment(Pos.CENTER);
+        t1.setEditable(false);//sets field to not be able to type in
         
         Label guessed = new Label("Cells Guessed:");//label for guesses
         guessed.setFont(new Font("Courier", 18));
         guessed.setAlignment(Pos.CENTER);
         
-        Rectangle r2 = new Rectangle(150, 20);//rect to show text on
-        r2.setStyle("-fx-Stroke: Black");
-        r2.setFill(Color.WHITE);
-        Text txt2 = new Text("0");
-        StackPane stack2 = new StackPane();//adds text on top rect
-        stack2.getChildren().addAll(r2, txt2);
+        TextField t2 = new TextField();//txt field to hold # of guesses
+        t2.setText("0");
+        t2.setAlignment(Pos.CENTER);
+        t2.setEditable(false);//sets field to not be able to type in
         
         Label bomb = new Label("Bomb Detector:");//label for bomb detect
         bomb.setFont(new Font("Courier", 18));
         bomb.setAlignment(Pos.CENTER);
         
-        Rectangle r3 = new Rectangle(150, 20);//rect to show text on
-        r3.setStyle("-fx-Stroke: Black");
-        r3.setFill(Color.WHITE);
-        Text txt3 = new Text("Unknown");
-        StackPane stack3 = new StackPane();//adds text on top rect
-        stack3.getChildren().addAll(r3, txt3);
+        TextField t3 = new TextField();//txt field to hold bomb proximity
+        t3.setText("UnKnown");
+        t3.setAlignment(Pos.CENTER);
+        t3.setEditable(false);//sets field to not be able to type in
         
         VBox row = new VBox();//VBox to add 3 lbls and 3 stackPanes
-        row.getChildren().addAll(time, stack1, guessed, stack2, bomb, stack3 );
+        row.getChildren().addAll(time, t1, guessed, t2, bomb, t3 );
         row.setAlignment(Pos.CENTER);
         row.setSpacing(10);
         row.setPadding(new Insets(10, 10, 10, 10));
@@ -147,19 +163,29 @@ public class Board extends Application
      * buttons of grid will hold pictures
      * @return grid pane containing 10 X 10 button grid
      */
-    private GridPane createGridPane()
+    private void createGridPane()
     {
-        GridPane grid = new GridPane();//holds 10 x 10 grid of buttons
-        grid.setPadding(new Insets(10, 10, 10, 10));
+        gridPane = new GridPane();//holds 10 x 10 grid of buttons
+        gridPane.setPadding(new Insets(10, 10, 10, 10));
         
         for (int row = 0; row < 10; row++)
         {
             for (int col = 0; col < 10; col++)
             {
-                grid.add(new Button(row + "" +col), col, row);
+                this.row = row;
+                this.col = col;
+                
+                buttonGrid[row][col] = new Button();
+                gridPane.add(buttonGrid[row][col], col, row);
+                
+                buttonGrid[row][col].setOnAction(new buttonPicListener(row, col));
+//                buttonGrid[row][col].setOnAction( (EventHandler<ActionEvent>) event -> {
+//                    displayableCellGrid[this.row][this.col].locationSelected( this.row, this.col);
+//                    setButtonGrid();
+//                });
             }
         }
-        return grid;
+        
     }
     
     /**
@@ -196,5 +222,118 @@ public class Board extends Application
         row.getChildren().addAll(createMenu(), title);//adds nodes
         row.setAlignment(Pos.CENTER);
         return row;
+    }
+    
+    private void startGame()
+    {
+        createFleet();
+        randomStartLocation();
+        createGrid();
+        createGridPane();
+        setButtonGrid();
+        
+        
+    }
+    public void createFleet()
+    {
+        for (int i = 0; i < fleet.length; i++)
+        {
+            // roll a random number
+            int random = (int) (Math.random() * 3) + 1;
+            // assign a specific ship in fleet based on num rolled
+            switch (random)
+            {
+                case 1:
+                    fleet[i] = new TugBoatGUI();
+                    break;
+                case 2:
+                    fleet[i] = new SubmarineGUI();
+                    break;
+                case 3:
+                    fleet[i] = new AirCraftCarrierGUI();
+                    break;
+            }
+        }
+    }
+    public void randomStartLocation()
+    {
+
+        for (int i = 0; i < fleet.length; i++)
+        {
+            int randomCol;// will hold a randomly generated column number
+            int randomRow;// will hold a randomly generated row number
+            // check to make sure ship dosn't go off grid by length or overlap
+            do
+            {
+                randomRow = (int) (Math.random() * 10);
+                randomCol = (int) (Math.random() * 9);
+            } while (fleet[i].getSize() + randomCol > 9 // true if over 9
+                    || isOverLap(randomRow, randomCol, i));// true if overlap
+
+            // sets start location for each ship in fleet
+            fleet[i].setStartLocation(randomRow, randomCol);
+            // sets individual fleet ships to grid
+            for (int in = 0; in < fleet[i].getSize(); in++)
+            {
+                displayableCellGrid[randomRow][randomCol + in] = fleet[i];
+            }
+        }
+    }
+    public boolean isOverLap(int row, int col, int index)
+    {
+        boolean result = false;
+        for (int i = 0; i < fleet[index].getSize() && result == false; i++)
+        {
+            if (displayableCellGrid[row][col + i] != null)// check for grid obj if one: true
+            {
+                result = displayableCellGrid[row][col + i] != null;// sets to true if grid full
+            }
+        }
+        return result;
+    }
+    public void createGrid()
+    {
+        // loop through grid and fill each spot with Empty Space
+        for (int row = 0; row < displayableCellGrid.length; row++)
+        {
+            for (int col = 0; col < displayableCellGrid[row].length; col++)
+            {
+                if (displayableCellGrid[row][col] == null)
+                {
+                    displayableCellGrid[row][col] = new EmptyCell();
+                }
+
+            }
+        }
+    }
+    public void setButtonGrid()
+    {
+        for (int row = 0; row < displayableCellGrid.length; row++)
+        {
+            for (int col = 0; col < displayableCellGrid[row].length; col++)
+            {
+                buttonGrid[row][col].setGraphic( new ImageView( displayableCellGrid[row][col].displayCell( col ) ) );
+            }
+        }
+    }
+    public class buttonPicListener implements EventHandler<ActionEvent>
+    {
+        private int row;
+        private int col;
+        public buttonPicListener(int row, int col)
+        {
+            this.row = row;
+            this.col = col;
+        }
+        /* (non-Javadoc)
+         * @see javafx.event.EventHandler#handle(javafx.event.Event)
+         */
+        @Override
+        public void handle(ActionEvent event)
+        {
+            displayableCellGrid[this.row][this.col].locationSelected( this.row, this.col);
+            setButtonGrid();
+        }
+        
     }
 }
