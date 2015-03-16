@@ -12,8 +12,8 @@ package battleship.gui.javafx;
 import javafx.scene.image.Image;
 
 /**
- * @author SkynetP2P
- *
+ * @author Keith Warman, Wes Reid
+ *this class will hold bomb objects and attributes
  */
 public class Bomb implements DisplayableCell
 {
@@ -41,7 +41,8 @@ public class Bomb implements DisplayableCell
     @Override
     public Image displayCell(int col)
     {
-        Image image = new Image("battleship/StartCell");
+        //Image image = new Image("battleship/StartCell");
+        Image image = EmptyCell.START_CELL_IMAGE;
         if ( selected )
         {
             image = BOMB_IMAGE;
@@ -77,19 +78,41 @@ public class Bomb implements DisplayableCell
     public String proximity(int row, int col)
     {
         String result = "";
-        if(row == this.row + 2 || row == this.row - 2 || col == this.col + 2 || 
-                col == this.col -2)
+        if(row == this.row + 2 || row == this.row - 2)
         {
-            result = "Caution - you are close";
+            if(col == this.col + 2 || col == this.col + 1 || col == this.col ||
+                    col == this.col - 1 || col == this.col - 2)
+            {
+                result = "Caution - you are close";
+            }
+            else
+            {
+                result = "Safe";
+            }
         }
-        else if(row == this.row + 1 || row == this.row - 1 || 
-                col == this.col + 1 || col == this.col -1)
+        else if(row == this.row + 1 || row == this.row - 1 || row == this.row)
         {
-            result = "Extreme Danger - step back!";
-        }
-        else if(row == this.row && col == this.col)
-        {
-            result = "BOOM!";
+            if(col == this.col + 1 || col == this.col - 1 || col == this.col)
+            {
+                if(row == this.row && col == this.col)
+                {
+                    result = "BOOM!";
+                }
+                else
+                {
+                    result = "Extreme Danger - step back!";
+                }
+            }
+            else if ((row == this.row + 1 || row == this.row || 
+                    row == this.row - 1) && (col == this.col + 2 || 
+                    col == this.col - 2)) 
+            {
+                result = "Caution - you are close";
+            }
+            else
+            {
+                result = "Safe";
+            }
         }
         else
         {
