@@ -9,9 +9,6 @@
 
 package battleship.gui.javafx;
 
-
-
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
@@ -54,7 +51,7 @@ public class Board extends Application
     private int userGuess = 0;//holds number of user guesses
     private Stage st;//holds stage object for using with action events
     private Button[][] buttonGrid = new Button[NUM_ROW][NUM_COL];//holds buttons
-    private TextField t1;//holds & returns game time
+    private TextField t1 = new TextField();//holds & returns game time
     private TextField t2;//holds & returns the user guess total
     private TextField t3;//holds & returns the bomb proximity message
     //private boolean exploded = false;//holds t/f for bomb check
@@ -90,8 +87,8 @@ public class Board extends Application
         
         //puts pane into scene & adds that to the stage
         stage.setScene(new Scene(board));
-        stage.setWidth(700);
-        stage.setHeight(550);
+        stage.setWidth(1000); //original 700
+        stage.setHeight(850); //original 550
         stage.setResizable(false);
         stage.show();//show the stage
         stage.setTitle("CST Battleship");//creates title for stage
@@ -116,7 +113,8 @@ public class Board extends Application
     {
         Button newGame = new Button("New Game");//to start new game
         newGame.setOnAction((ActionEvent)->{
-            startGame();
+            timeline.stop();
+        	startGame();
         });
         Button close = new Button("Close");//to close game
         //sets button to close stage
@@ -145,7 +143,7 @@ public class Board extends Application
         time.setFont(new Font("Courier", 18));
         time.setAlignment(Pos.CENTER);
         
-        TextField t1 = new TextField();//txt field to show time elapsed
+        //TextField t1 = new TextField();//txt field to show time elapsed
         t1.setText(""+ gameTime);
         t1.setAlignment(Pos.CENTER);
         t1.setEditable(false);//sets field to not be able to type in
@@ -399,7 +397,11 @@ public class Board extends Application
         userGuess = 0;//returns number of guesses to zero
         gameOver = false;
         //exploded = false;
+        //timeline.stop();
         gameTime = 0;
+        t1.setText( Integer.toString(gameTime) );
+        t2.setText("0");
+        t3.setText("");
         hasTimerStarted = false;
        
     }
@@ -444,6 +446,7 @@ public class Board extends Application
     {
         private int row;
         private int col;
+       
         /**
          * constructor sets row and col
          * @param row incoming gridpane row for button
@@ -503,7 +506,7 @@ public class Board extends Application
         
         //Start the timeline to update how long player has played
         private void beginTimeLine() 
-        {
+        {       	
 			hasTimerStarted = true;
         	timeline = new Timeline();
 			timeline.setCycleCount(Timeline.INDEFINITE); //cycle until cancelled
@@ -518,21 +521,18 @@ public class Board extends Application
 								else
 								{
 									gameTime++;
-									time.setText("" + gameTime);
+									t1.setText( Integer.toString(gameTime));
 								}
 							})
 					);
-			timeline.playFromStart();
-			
-			
-			
-			
+			timeline.playFromStart();											
 		}
 		/**
          * Purpose shows a popup with a condolence message upon losing
          */
         public void lostPopup()
         {
+        	timeline.stop();
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initOwner(st);
@@ -556,6 +556,7 @@ public class Board extends Application
          */
         public void wonPopup()
         {
+        	timeline.stop();
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initOwner(st);
